@@ -1,0 +1,163 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useHeader } from '../../components/layout/HeaderContext';
+import { motion } from 'framer-motion';
+
+const AddClient = () => {
+  const { setHeaderData } = useHeader();
+  const [preview, setPreview] = useState("https://ui-avatars.com/api/?name=New+Client&background=random&size=256");
+
+  // ১. হেডার ডাটা আপডেট (যেন লেআউটের হেডারে প্রভাব ফেলে)
+  useEffect(() => {
+    setHeaderData({
+      title: 'Add New Client',
+      subtitle: 'Register a new client profile',
+      icon: 'fa-solid fa-user-plus'
+    });
+  }, [setHeaderData]);
+
+  // ২. ইমেজ প্রিভিউ হ্যান্ডেলার
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // ৩. এনিমেশন ভেরিয়েন্ট
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.1 }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.5, ease: "easeOut" }
+    }
+  };
+
+  return (
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="w-full"
+    >
+      {/* ১. কাস্টম হেডার সেকশন */}
+      <motion.header 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="bg-white/80 backdrop-blur-xl px-4 sm:px-6 py-4 rounded-2xl sm:rounded-[2rem] shadow-sm border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-4 sticky top-0 z-30"
+      >
+        <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+          <button className="lg:hidden p-2.5 bg-gray-50 border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-100 transition-colors">
+            <i className="fa-solid fa-bars text-sm"></i>
+          </button>
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-50 text-indigo-600 rounded-xl hidden sm:flex items-center justify-center shadow-sm border border-indigo-100 shrink-0">
+            <i className="fa-solid fa-user-plus text-lg sm:text-xl"></i>
+          </div>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black font-merriweather text-gray-900 leading-tight">Add New Client</h1>
+            <p className="text-[10px] sm:text-[11px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Register a new client profile</p>
+          </div>
+          <img src="https://ui-avatars.com/api/?name=Sets+Tech&background=0D8ABC&color=fff" className="w-9 h-9 sm:hidden rounded-xl border border-gray-200 shadow-sm shrink-0 ml-auto" alt="Admin" />
+        </div>
+
+        <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-3 sm:gap-5">
+          <Link to="/clients" className="w-full sm:w-auto flex justify-center px-4 py-2.5 bg-gray-900 hover:bg-black text-white font-bold text-[10px] sm:text-xs uppercase tracking-widest rounded-xl shadow-md transition-all items-center gap-2 active:scale-95">
+            <i className="fa-solid fa-arrow-left"></i> Back
+          </Link>
+          <div className="h-8 w-px bg-gray-200 hidden sm:block"></div>
+          <div className="hidden sm:flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-sm font-bold text-gray-900 leading-tight">Admin Panel</p>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Sets Tech</p>
+            </div>
+            <img src="https://ui-avatars.com/api/?name=Sets+Tech&background=0D8ABC&color=fff" className="w-11 h-11 rounded-xl border-2 border-gray-100 shadow-sm shrink-0" alt="Admin" />
+          </div>
+        </div>
+      </motion.header>
+
+      {/* ২. ফর্ম কন্টেন্ট */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden pr-1 sm:pr-2 pb-10 w-full custom-scrollbar">
+        <form id="addClientForm" className="space-y-5 sm:space-y-6 max-w-4xl mx-auto mt-2" onSubmit={(e) => e.preventDefault()}>
+          
+          {/* Section 1: Client Details */}
+          <motion.div variants={cardVariants} className="bg-white/50 backdrop-blur-xl border border-white/60 rounded-[24px] sm:rounded-[30px] p-5 sm:p-8 shadow-sm">
+            <h2 className="text-lg sm:text-xl font-bold font-merriweather text-gray-900 mb-5 border-b border-gray-200/50 pb-4">
+              <i className="fa-solid fa-address-card text-[#0F8FF0] mr-2"></i> 1. Client Details
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 mb-2 block uppercase tracking-widest pl-1">Full Name *</label>
+                <input type="text" placeholder="e.g. Arif Hasan" required className="w-full px-4 py-3 bg-white/80 border border-gray-200 rounded-xl outline-none focus:border-[#0F8FF0]/50 focus:ring-2 focus:ring-[#0F8FF0]/20 text-sm transition-all shadow-sm font-bold text-gray-900" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 mb-2 block uppercase tracking-widest pl-1">Company Name</label>
+                <input type="text" placeholder="e.g. Tech BD Ltd." className="w-full px-4 py-3 bg-white/80 border border-gray-200 rounded-xl outline-none focus:border-[#0F8FF0]/50 focus:ring-2 focus:ring-[#0F8FF0]/20 text-sm transition-all shadow-sm font-bold text-gray-900" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 mb-2 block uppercase tracking-widest pl-1">Email Address *</label>
+                <input type="email" placeholder="e.g. client@example.com" required className="w-full px-4 py-3 bg-white/80 border border-gray-200 rounded-xl outline-none focus:border-[#0F8FF0]/50 focus:ring-2 focus:ring-[#0F8FF0]/20 text-sm transition-all shadow-sm font-bold text-gray-900" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 mb-2 block uppercase tracking-widest pl-1">Phone Number</label>
+                <input type="text" placeholder="e.g. +880 1XXX XXXXXX" className="w-full px-4 py-3 bg-white/80 border border-gray-200 rounded-xl outline-none focus:border-[#0F8FF0]/50 focus:ring-2 focus:ring-[#0F8FF0]/20 text-sm transition-all shadow-sm font-bold text-gray-900" />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Section 2: Additional Info */}
+          <motion.div variants={cardVariants} className="bg-white/50 backdrop-blur-xl border border-white/60 rounded-[24px] sm:rounded-[30px] p-5 sm:p-8 shadow-sm">
+            <h2 className="text-lg sm:text-xl font-bold font-merriweather text-gray-900 mb-5 border-b border-gray-200/50 pb-4">
+              <i className="fa-solid fa-map-location-dot text-green-600 mr-2"></i> 2. Additional Information
+            </h2>
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 mb-2 block uppercase tracking-widest pl-1">Address & Notes</label>
+              <textarea rows="4" placeholder="Enter client address or any specific notes here..." className="w-full px-4 py-3 bg-white/80 border border-gray-200 rounded-xl outline-none focus:border-green-500/50 focus:ring-2 focus:ring-green-500/20 text-sm transition-all shadow-sm resize-none font-bold text-gray-900"></textarea>
+            </div>
+          </motion.div>
+
+          {/* Section 3: Photo Upload */}
+          <motion.div variants={cardVariants} className="bg-white/50 backdrop-blur-xl border border-white/60 rounded-[24px] sm:rounded-[30px] p-5 sm:p-8 shadow-sm">
+            <h2 className="text-lg sm:text-xl font-bold font-merriweather text-gray-900 mb-5 border-b border-gray-200/50 pb-4">
+              <i className="fa-solid fa-image text-purple-600 mr-2"></i> 3. Client Photo
+            </h2>
+            <div className="flex flex-col sm:flex-row items-center gap-5">
+              <div className="relative group">
+                <img src={preview} alt="preview" className="w-28 h-28 sm:w-32 sm:h-32 rounded-[2rem] sm:rounded-[2.5rem] shadow-md object-cover border-4 border-white" />
+                <label htmlFor="client_image" className="absolute bottom-1 right-1 w-10 h-10 bg-black text-white rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg cursor-pointer active:scale-95 transition-transform border-2 sm:border-4 border-white">
+                  <i className="fa-solid fa-camera text-sm"></i>
+                </label>
+                <input type="file" id="client_image" className="hidden" accept="image/*" onChange={handleImageChange} />
+              </div>
+              <div className="text-center sm:text-left">
+                <p className="text-sm font-bold text-gray-700">Upload Profile Picture</p>
+                <p className="text-xs text-gray-400 mt-1">Recommended: Square size (JPG, PNG)</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Submit Button */}
+          <motion.div variants={cardVariants} className="pt-2 pb-8 flex justify-end">
+            <button type="submit" className="w-full sm:w-auto justify-center px-8 py-4 bg-[#0F8FF0] text-white font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-xl hover:bg-[#0d7ed4] active:scale-[0.98] sm:hover:-translate-y-1 transition-all duration-300 flex items-center gap-3">
+              <i className="fa-solid fa-user-check"></i> Save Client Record
+            </button>
+          </motion.div>
+        </form>
+      </div>
+    </motion.div>
+  );
+};
+
+export default AddClient;

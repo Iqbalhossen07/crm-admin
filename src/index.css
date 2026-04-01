@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+
+ 
+        body {
+            font-family: 'Lora', serif;
+            background-color: #f3f4f9;
+            color: #1f2937;
+        }
+
+        .font-merriweather {
+            font-family: 'Merriweather', serif;
+        }
+
+        .sidebar-link:hover {
+            color: #000;
+            background-color: #f9fafb;
+        }
+
+        .sidebar-active {
+            background-color: #1f2937;
+            color: #fff;
+            font-weight: 600;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-active i {
+            color: #fff;
+        }
+
+        /* Cute card hover effects */
+        .cute-card {
+            transition: all 0.3s ease-in-out;
+            border: 1px solid #f3f4f6;
+        }
+
+        .cute-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.08);
+            border-color: #e5e7eb;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
