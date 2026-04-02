@@ -479,7 +479,7 @@ const ClientOverview = () => {
                         style={{ overflow: "visible" }}
                       >
                         <td className="px-8 py-5 text-gray-500 font-bold text-xs">
-                          {formatDate(pay.created_at)}
+                          {formatDate(pay.createdAt)}
                         </td>
                         <td className="px-6 py-5">
                           <p className="font-bold text-gray-900 text-sm">
