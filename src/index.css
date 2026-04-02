@@ -52,3 +52,24 @@ body {
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+
+/* CKEditor Custom Styling for AddJob Form */
+.custom-ckeditor-wrapper .ck-editor__editable {
+    min-height: 200px !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-family: inherit !important;
+    font-size: 14px !important;
+    background-color: transparent !important;
+}
+
+.custom-ckeditor-wrapper .ck-toolbar {
+    border: none !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    background-color: #f9fafb !important;
+}
+
+.custom-ckeditor-wrapper .ck.ck-editor__main>.ck-editor__editable:not(.ck-focused) {
+    border-color: transparent !important;
+}
