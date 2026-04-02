@@ -100,7 +100,7 @@ const AddJob = () => {
       estimate_finish_time: formData.estimate_finish_time || null,
       description: formData.description,
       job_status: "In Progress",
-      payment_status: "Pending",
+      payment_status: "Incompleted",
     };
 
     console.log("📡 Sending Payload to API:", payload);

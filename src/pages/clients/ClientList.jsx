@@ -133,25 +133,37 @@ const ClientList = () => {
                 </div>
               </div>
 
-              {/* Amounts - আপাতত স্ট্যাটিক থাকবে যতক্ষণ না প্রজেক্ট লজিক করছি */}
+              {/* 🎯 Amounts - Dynamic Real-time Calculation */}
               <div className="flex items-center gap-2">
-                <div className="flex-1 bg-gray-50 p-2.5 rounded-2xl text-center">
+                <div className="flex-1 bg-gray-50 p-2.5 rounded-2xl text-center border border-gray-100">
                   <p className="text-[8px] text-gray-400 font-black uppercase tracking-tighter mb-0.5">
                     Budget
                   </p>
-                  <p className="text-xs font-black text-gray-900">£0</p>
+                  <p className="text-xs font-black text-gray-900">
+                    £{Number(client.total_bill || 0).toLocaleString()}
+                  </p>
                 </div>
-                <div className="flex-1 bg-green-50 p-2.5 rounded-2xl text-center">
-                  <p className="text-[8px] text-green-400 font-black uppercase tracking-tighter mb-0.5">
+                <div className="flex-1 bg-green-50 p-2.5 rounded-2xl text-center border border-green-50">
+                  <p className="text-[8px] text-green-500 font-black uppercase tracking-tighter mb-0.5">
                     Paid
                   </p>
-                  <p className="text-xs font-black text-green-700">£0</p>
+                  <p className="text-xs font-black text-green-700">
+                    £{Number(client.total_paid || 0).toLocaleString()}
+                  </p>
                 </div>
-                <div className="flex-1 bg-red-50 p-2.5 rounded-2xl text-center">
-                  <p className="text-[8px] text-red-400 font-black uppercase tracking-tighter mb-0.5">
+                <div
+                  className={`flex-1 p-2.5 rounded-2xl text-center border ${client.total_due > 0 ? "bg-red-50 border-red-50" : "bg-gray-50 border-gray-100"}`}
+                >
+                  <p
+                    className={`text-[8px] font-black uppercase tracking-tighter mb-0.5 ${client.total_due > 0 ? "text-red-400" : "text-gray-400"}`}
+                  >
                     Due
                   </p>
-                  <p className="text-xs font-black text-red-700">£0</p>
+                  <p
+                    className={`text-xs font-black ${client.total_due > 0 ? "text-red-700" : "text-gray-900"}`}
+                  >
+                    £{Number(client.total_due || 0).toLocaleString()}
+                  </p>
                 </div>
               </div>
             </div>
@@ -192,7 +204,7 @@ const ClientList = () => {
         ))}
       </div>
 
-      {/* Delete Modal (আপনার ডিজাইন অনুযায়ী) */}
+      {/* Delete Modal */}
       <AnimatePresence>
         {isDeleteModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">

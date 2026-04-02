@@ -229,35 +229,42 @@ const ProjectList = () => {
                 </h3>
 
                 {/* স্ট্যাটিক জিরো ডাটা */}
+                {/* কার্ডের ভেতরে ডাটা সেকশন */}
                 <div className="grid grid-cols-3 gap-2 mb-6">
                   <div className="bg-gray-50/50 p-3 rounded-2xl border border-gray-100 text-center">
                     <p className="text-[8px] font-black text-gray-400 uppercase mb-1">
-                      Tasks
+                      Jobs
                     </p>
-                    <p className="text-sm font-black text-gray-900">0</p>
+                    <p className="text-sm font-black text-gray-900">
+                      {proj.total_jobs || 0}
+                    </p>
                   </div>
                   <div className="bg-orange-50/50 p-3 rounded-2xl border border-orange-50 text-center">
                     <p className="text-[8px] font-black text-orange-500 uppercase mb-1">
                       Pending
                     </p>
-                    <p className="text-sm font-black text-orange-600">0</p>
+                    <p className="text-sm font-black text-orange-600">
+                      {proj.pending_jobs || 0}
+                    </p>
                   </div>
                   <div className="bg-green-50/50 p-3 rounded-2xl border border-green-50 text-center">
                     <p className="text-[8px] font-black text-green-500 uppercase mb-1">
                       Done
                     </p>
-                    <p className="text-sm font-black text-green-600">0</p>
+                    <p className="text-sm font-black text-green-600">
+                      {proj.done_jobs || 0}
+                    </p>
                   </div>
                 </div>
 
-                {/* স্ট্যাটিক বাজেট ডাটা */}
+                {/* বাজেট সেকশন */}
                 <div className="flex items-center justify-between border-y border-gray-50 py-4 mb-6 px-2">
                   <div className="text-center">
                     <p className="text-[8px] font-black text-gray-400 uppercase">
                       Budget
                     </p>
                     <p className="text-xs sm:text-[13px] font-black text-gray-900">
-                      £0
+                      £{Number(proj.project_budget || 0).toLocaleString()}
                     </p>
                   </div>
                   <div className="text-center">
@@ -265,7 +272,7 @@ const ProjectList = () => {
                       Paid
                     </p>
                     <p className="text-xs sm:text-[13px] font-black text-green-600">
-                      £0
+                      £{Number(proj.paid_budget || 0).toLocaleString()}
                     </p>
                   </div>
                   <div className="text-center">
@@ -273,7 +280,7 @@ const ProjectList = () => {
                       Due
                     </p>
                     <p className="text-xs sm:text-[13px] font-black text-gray-400">
-                      £0
+                      £{Number(proj.due_budget || 0).toLocaleString()}
                     </p>
                   </div>
                 </div>

@@ -42,12 +42,15 @@ const JobList = () => {
         const projRes = await api.get("/admin/jobs/projects-list");
         setProjectsList(projRes.data.data);
 
-        // জব লিস্ট (প্রজেক্ট আইডি থাকলে ফিল্টার হয়ে আসবে)
+        // জব লিস্ট (প্রজেক্ট আইডি থাকলে ফিল্টার হয়ে আসবে)
         const url = projectId
           ? `/admin/jobs?project_id=${projectId}`
           : "/admin/jobs";
         const jobRes = await api.get(url);
-        setJobs(jobRes.data.data);
+
+        // 🎯 লেটেস্ট জব আগে আনার জন্য ডাটা রিভার্স করে স্টেটে রাখা হলো
+        const sortedData = jobRes.data.data.reverse();
+        setJobs(sortedData);
       } catch (error) {
         console.error("Error fetching jobs:", error);
       } finally {
@@ -66,10 +69,37 @@ const JobList = () => {
         .includes(searchTerm.toLowerCase()),
   );
 
-  // ডিলিট হ্যান্ডেলার (অস্থায়ী)
+  // 🎯 ডিলিট হ্যান্ডেলার (অস্থায়ী থেকে পার্মানেন্ট!)
   const handleDelete = async () => {
-    // API Call here...
-    setIsDeleteModalOpen(false);
+    if (!selectedJob) return;
+
+    try {
+      // ব্যাকএন্ডে ডিলিট রিকোয়েস্ট পাঠানো হচ্ছে
+      const res = await api.delete(`/admin/jobs/${selectedJob._id}`);
+
+      if (res.data.success) {
+        // ডিলিট সফল হলে স্টেট থেকে ওই জবটা সরিয়ে দেওয়া হচ্ছে (পেজ রিলোড ছাড়াই)
+        setJobs(jobs.filter((job) => job._id !== selectedJob._id));
+        setIsDeleteModalOpen(false);
+
+        Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: "Job has been completely removed.",
+          timer: 2000,
+          showConfirmButton: false,
+          borderRadius: "2rem",
+        });
+      }
+    } catch (error) {
+      console.error("Delete Error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Failed!",
+        text: error.response?.data?.error || "Could not delete the job.",
+        borderRadius: "2rem",
+      });
+    }
   };
 
   // ডেট ফরম্যাটার
@@ -136,7 +166,7 @@ const JobList = () => {
             </div>
           </div>
 
-          {/* ক্লিয়ার ফিল্টার বাটন */}
+          {/* ক্লিয়ার ফিল্টার বাটন */}
           {(searchTerm || projectId) && (
             <button
               onClick={() => {
@@ -262,27 +292,29 @@ const JobList = () => {
                   <i className="fa-solid fa-coins"></i>{" "}
                   {job.due_budget > 0 ? "PAY" : "PAID"}
                 </button>
-                <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-2">
+                  {" "}
+                  {/* opacity এবং group-hover ক্লাসগুলো সরিয়ে দেওয়া হয়েছে */}
                   <Link
                     to={`/jobs/view/${job._id}`}
-                    className="h-9 w-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-[#0F8FF0] hover:text-white transition-all border border-blue-100"
+                    className="h-9 w-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-[#0F8FF0] hover:text-white transition-all border border-blue-100 shadow-sm"
                   >
-                    <i className="fas fa-eye text-xs"></i>
+                    <i className="fas fa-eye text-sm"></i>
                   </Link>
                   <Link
                     to={`/jobs/edit/${job._id}`}
-                    className="h-9 w-9 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all border border-green-100"
+                    className="h-9 w-9 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all border border-green-100 shadow-sm"
                   >
-                    <i className="fas fa-pencil text-xs"></i>
+                    <i className="fas fa-pencil text-sm"></i>
                   </Link>
                   <button
                     onClick={() => {
                       setSelectedJob(job);
                       setIsDeleteModalOpen(true);
                     }}
-                    className="h-9 w-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all border border-red-100"
+                    className="h-9 w-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all border border-red-100 shadow-sm"
                   >
-                    <i className="fas fa-trash text-xs"></i>
+                    <i className="fas fa-trash text-sm"></i>
                   </button>
                 </div>
               </div>
