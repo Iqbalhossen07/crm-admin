@@ -1,35 +1,59 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "../../api/axios";
+import Loader from "../Loader/Loader";
+import Swal from "sweetalert2";
 
 const JobOverview = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // মোডাল এবং ড্রপডাউন স্টেট
+  // API States
+  const [loading, setLoading] = useState(true);
+  const [job, setJob] = useState(null);
+  const [clientPayments, setClientPayments] = useState([]);
+  const [devPayments, setDevPayments] = useState([]);
+
+  // Modal States
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [activePaymentId, setActivePaymentId] = useState(null);
 
-  // ডামি ডাটা
-  const [job] = useState({
-    task_id: id || 1,
-    task_name: "Api ingration",
-    project_name: "Web Design",
-    task_status: "IN PROGRESS",
-    created_by: "Admin",
-    task_budget: 5000.0,
-    paid_budget: 2500.0,
-    due_budget: 2500.0,
-    estimate_finish_time: "Mar 01, 2026",
-    dev_name: "Iqbal Hossen",
-    dev_budget: 100.0,
-    dev_paid: 20.0,
-    dev_due: 80.0,
-    description: "Describe the progress, notes, or feedback here...",
-  });
+  useEffect(() => {
+    const fetchJobData = async () => {
+      try {
+        const res = await api.get(`/admin/jobs/${id}`);
+        const {
+          job: jobData,
+          client_payments,
+          developer_payments,
+        } = res.data.data;
 
-  const profit = job.task_budget - job.dev_budget;
+        setJob(jobData);
+        setClientPayments(client_payments);
+        setDevPayments(developer_payments);
+      } catch (err) {
+        console.error("Error fetching job details", err);
+        Swal.fire("Error", "Failed to load job details.", "error");
+        navigate(-1);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJobData();
+  }, [id, navigate]);
+
+  // Date Formatter
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
   const modalVariants = {
     hidden: { opacity: 0, scale: 0.95, y: 10 },
@@ -39,13 +63,15 @@ const JobOverview = () => {
       y: 0,
       transition: { type: "spring", stiffness: 450, damping: 30 },
     },
-    exit: {
-      opacity: 0,
-      scale: 0.95,
-      y: 10,
-      transition: { duration: 0.15 },
-    },
+    exit: { opacity: 0, scale: 0.95, y: 10, transition: { duration: 0.15 } },
   };
+
+  if (loading) return <Loader />;
+  if (!job) return null;
+
+  const profit =
+    Number(job.job_budget || 0) - Number(job.developer_budget || 0);
+
   return (
     <div className="w-full pb-10 custom-scrollbar">
       {/* ১. টপ হেডার */}
@@ -59,7 +85,7 @@ const JobOverview = () => {
               Task Details
             </h1>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
-              ID: #TSK-{String(job.task_id).padStart(4, "0")}
+              ID: #TSK-{String(job._id).slice(-5).toUpperCase()}
             </p>
           </div>
         </div>
@@ -80,36 +106,63 @@ const JobOverview = () => {
       </header>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-        {/* ২. বাম পাশ */}
+        {/* ২. বাম পাশ (Job Details + Dev Payments) */}
         <div className="xl:col-span-7 space-y-8">
+          {/* Main Job Details Card */}
           <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden relative">
             <div className="h-2 w-full bg-[#0F8FF0]"></div>
             <div className="p-10">
               <div className="flex gap-3 mb-6">
-                <span className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100">
-                  <i className="fa-solid fa-spinner fa-spin mr-1"></i>{" "}
-                  {job.task_status}
+                <span
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${job.job_status === "Completed" ? "bg-green-50 text-green-600 border-green-100" : "bg-blue-50 text-blue-600 border-blue-100"}`}
+                >
+                  {job.job_status !== "Completed" && (
+                    <i className="fa-solid fa-spinner fa-spin mr-1"></i>
+                  )}
+                  {job.job_status}
                 </span>
-                <span className="px-3 py-1.5 bg-red-50 text-red-500 rounded-lg text-[10px] font-black uppercase tracking-widest border border-red-100">
-                  PAYMENT: INCOMPLETED
+                <span
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${job.payment_status === "Completed" ? "bg-green-50 text-green-600 border-green-100" : "bg-red-50 text-red-500 border-red-100"}`}
+                >
+                  PAYMENT: {job.payment_status?.toUpperCase()}
                 </span>
               </div>
               <h2 className="text-4xl font-black text-gray-900 font-merriweather mb-6">
-                {job.task_name}
+                {job.job_name}
               </h2>
-              <div className="inline-flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100 mb-10">
-                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shrink-0">
-                  <i className="fa-solid fa-folder-open text-indigo-500"></i>
+
+              {/* 🎯 Project & Client Info Flex Container */}
+              <div className="flex flex-wrap gap-4 mb-10">
+                <div className="inline-flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shrink-0">
+                    <i className="fa-solid fa-folder-open text-indigo-500"></i>
+                  </div>
+                  <div className="pr-4 min-w-0">
+                    <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest">
+                      Project Name
+                    </p>
+                    <p className="text-sm font-black text-gray-900 truncate">
+                      {job.project_id?.project_name || "N/A"}
+                    </p>
+                  </div>
                 </div>
-                <div className="pr-4 min-w-0">
-                  <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest">
-                    Project Name
-                  </p>
-                  <p className="text-sm font-black text-gray-900 truncate">
-                    {job.project_name}
-                  </p>
+
+                {/* 🎯 NEW: Client Name Box */}
+                <div className="inline-flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shrink-0">
+                    <i className="fa-solid fa-user-tie text-emerald-500"></i>
+                  </div>
+                  <div className="pr-4 min-w-0">
+                    <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest">
+                      Client Name
+                    </p>
+                    <p className="text-sm font-black text-gray-900 truncate">
+                      {job.client_id?.name || "N/A"}
+                    </p>
+                  </div>
                 </div>
               </div>
+
               {/* Economics */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 py-8 border-t border-gray-100">
                 <div className="col-span-full mb-2">
@@ -123,7 +176,7 @@ const JobOverview = () => {
                   </p>
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 bg-blue-900 text-white rounded-full flex items-center justify-center text-[10px] font-black">
-                      AD
+                      {job.created_by.substring(0, 2).toUpperCase()}
                     </div>
                     <p className="text-xs font-bold text-gray-900">
                       {job.created_by}
@@ -135,7 +188,7 @@ const JobOverview = () => {
                     Client Budget
                   </p>
                   <p className="text-xl font-black text-gray-900">
-                    £{job.task_budget.toLocaleString()}
+                    £{Number(job.job_budget).toLocaleString()}
                   </p>
                 </div>
                 <div>
@@ -143,10 +196,10 @@ const JobOverview = () => {
                     Paid / Due
                   </p>
                   <p className="text-sm font-black text-green-600">
-                    £{job.paid_budget.toLocaleString()}{" "}
+                    £{Number(job.paid_budget).toLocaleString()}{" "}
                     <span className="text-gray-300 mx-1">/</span>{" "}
                     <span className="text-red-500">
-                      £{job.due_budget.toLocaleString()}
+                      £{Number(job.due_budget).toLocaleString()}
                     </span>
                   </p>
                 </div>
@@ -156,10 +209,11 @@ const JobOverview = () => {
                   </p>
                   <p className="text-xs font-bold text-gray-700 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100 inline-block">
                     <i className="fa-regular fa-calendar mr-2 text-orange-500"></i>
-                    {job.estimate_finish_time}
+                    {formatDate(job.estimate_finish_time)}
                   </p>
                 </div>
               </div>
+
               {/* Internal Costings */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 py-8 border-y border-gray-100 bg-gray-50/30 -mx-10 px-10">
                 <div className="col-span-full mb-2">
@@ -173,7 +227,7 @@ const JobOverview = () => {
                   </p>
                   <p className="text-xs font-bold text-gray-900 flex items-center gap-2">
                     <i className="fa-solid fa-code text-blue-500"></i>
-                    {job.dev_name}
+                    {job.developer_id?.name || "Unassigned"}
                   </p>
                 </div>
                 <div>
@@ -181,7 +235,7 @@ const JobOverview = () => {
                     Dev Budget
                   </p>
                   <p className="text-xl font-black text-gray-900">
-                    £{job.dev_budget.toLocaleString()}
+                    £{Number(job.developer_budget).toLocaleString()}
                   </p>
                 </div>
                 <div>
@@ -189,10 +243,10 @@ const JobOverview = () => {
                     Dev Paid / Due
                   </p>
                   <p className="text-sm font-black text-green-600">
-                    £{job.dev_paid.toLocaleString()}{" "}
+                    £{Number(job.developer_paid).toLocaleString()}{" "}
                     <span className="text-gray-300 mx-1">/</span>{" "}
                     <span className="text-red-500">
-                      £{job.dev_due.toLocaleString()}
+                      £{Number(job.developer_due).toLocaleString()}
                     </span>
                   </p>
                 </div>
@@ -203,20 +257,68 @@ const JobOverview = () => {
                   <p
                     className={`text-xs font-black px-3 py-1.5 rounded-lg border inline-block ${profit >= 0 ? "text-emerald-600 bg-emerald-50 border-emerald-100" : "text-rose-600 bg-rose-50 border-rose-100"}`}
                   >
-                    +
                     {profit >= 0
-                      ? `£${profit.toLocaleString()}`
+                      ? `+£${profit.toLocaleString()}`
                       : `-£${Math.abs(profit).toLocaleString()}`}
                   </p>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Developer Payments Section (Bottom Left) */}
+          <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 relative overflow-hidden">
+            <div className="p-6 border-b border-gray-50 flex items-center bg-gray-50/30">
+              <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-3">
+                <i className="fa-solid fa-laptop-code text-blue-500"></i>{" "}
+                Developer Payments
+              </h3>
+            </div>
+            {devPayments.length > 0 ? (
+              <div className="overflow-x-auto p-4">
+                <table className="w-full text-left text-sm text-gray-700 whitespace-nowrap">
+                  <thead className="text-gray-400 text-[10px] uppercase font-black tracking-widest border-b border-gray-100">
+                    <tr>
+                      <th className="px-4 py-3">Date</th>
+                      <th className="px-4 py-3 text-right">Amount</th>
+                      <th className="px-4 py-3 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {devPayments.map((pay) => (
+                      <tr
+                        key={pay._id}
+                        className="hover:bg-gray-50/50 transition-colors"
+                      >
+                        <td className="px-4 py-4 text-xs font-bold text-gray-500">
+                          {formatDate(pay.createdAt || pay.created_at)}
+                        </td>
+                        <td className="px-4 py-4 font-black text-gray-900 text-right">
+                          £{Number(pay.paid_amount).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <span
+                            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase border ${pay.status?.toLowerCase() === "completed" ? "bg-green-100/50 text-green-700 border-white" : "bg-yellow-100/50 text-yellow-700 border-white"}`}
+                          >
+                            {pay.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-10 text-center text-gray-400 font-bold text-sm">
+                No developer payments recorded yet.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* ৩. ডান পাশ */}
         <div className="xl:col-span-5 space-y-8">
-          {/* Activity Log */}
+          {/* Activity Log (আপাদত স্ট্যাটিক) */}
           <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
               <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-3">
@@ -254,94 +356,76 @@ const JobOverview = () => {
                       </span>
                     </div>
                     <p className="text-xs text-gray-600 font-medium leading-relaxed">
-                      Detailed task progress description here.
+                      Detailed task progress description here. (Static)
                     </p>
-                    <button className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-indigo-100 hover:bg-indigo-100 transition-colors">
-                      <i className="fa-solid fa-link"></i> View Attachment
-                    </button>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Client Payments (Fixing Overflow) */}
-          <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 relative">
-            <div className="p-6 border-b border-gray-50 flex items-center bg-gray-50/30 rounded-t-[2.5rem]">
+          {/* Client Payments (Dynamic) */}
+          <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 relative overflow-hidden">
+            <div className="p-6 border-b border-gray-50 flex items-center bg-gray-50/30">
               <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest flex items-center gap-3">
                 <i className="fa-solid fa-money-bill-wave text-emerald-500"></i>{" "}
                 Client Payments
               </h3>
             </div>
-            <div className="p-6">
-              <div className="bg-white p-5 rounded-[1.5rem] border border-gray-100 shadow-sm flex items-center justify-between relative">
-                <div>
-                  <h4 className="text-lg font-black text-gray-900">£500.00</h4>
-                  <p className="text-[10px] font-bold text-gray-400 mt-1">
-                    26 Feb, 2026
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-lg bg-red-50 text-red-500 text-[9px] font-black uppercase tracking-widest border border-red-100 mr-2">
-                    REJECTED
-                  </span>
-
-                  <div className="flex items-center gap-2 relative">
-                    <button className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-500 hover:text-white transition-all">
-                      <i className="fa-solid fa-image text-xs"></i>
-                    </button>
-                    <button className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all">
-                      <i className="fa-solid fa-file-invoice text-xs"></i>
-                    </button>
-
-                    {/* Status dropdown controller */}
-                    <div className="relative">
-                      <button
-                        onClick={() =>
-                          setActivePaymentId(activePaymentId === 1 ? null : 1)
-                        }
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all shadow-sm active:scale-90 ${activePaymentId === 1 ? "bg-orange-500 text-white" : "bg-orange-50 text-orange-600 hover:bg-orange-500 hover:text-white"}`}
-                      >
-                        <i className="fa-solid fa-rotate text-xs"></i>
-                      </button>
-
-                      <AnimatePresence>
-                        {activePaymentId === 1 && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                            className="absolute right-0 bottom-full mb-2 w-36 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.15)] border border-gray-100 p-2 z-[100]"
-                          >
-                            <button className="w-full text-left px-4 py-2.5 text-[10px] font-black uppercase text-green-600 hover:bg-green-50 rounded-xl transition-colors">
-                              Accept
-                            </button>
-                            <button className="w-full text-left px-4 py-2.5 text-[10px] font-black uppercase text-yellow-600 hover:bg-yellow-50 rounded-xl transition-colors">
-                              Pending
-                            </button>
-                            <button className="w-full text-left px-4 py-2.5 text-[10px] font-black uppercase text-red-600 hover:bg-red-50 rounded-xl transition-colors">
-                              Reject
-                            </button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+            <div className="p-6 space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar">
+              {clientPayments.length > 0 ? (
+                clientPayments.map((pay) => (
+                  <div
+                    key={pay._id}
+                    className="bg-white p-5 rounded-[1.5rem] border border-gray-100 shadow-sm flex items-center justify-between relative"
+                  >
+                    <div>
+                      <h4 className="text-lg font-black text-gray-900">
+                        £{Number(pay.paid_amount).toLocaleString()}
+                      </h4>
+                      <p className="text-[10px] font-bold text-gray-400 mt-1">
+                        {formatDate(pay.createdAt || pay.created_at)}
+                      </p>
                     </div>
-
-                    <button
-                      onClick={() => setIsDeleteModalOpen(true)}
-                      className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
-                    >
-                      <i className="fa-solid fa-trash text-xs"></i>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border mr-2 ${pay.status?.toLowerCase() === "accepted" || pay.status?.toLowerCase() === "completed" ? "bg-green-50 text-green-600 border-green-100" : "bg-yellow-50 text-yellow-600 border-yellow-100"}`}
+                      >
+                        {pay.status}
+                      </span>
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 relative">
+                        {pay.payment_screenshot && (
+                          <a
+                            href={pay.payment_screenshot}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-500 hover:text-white transition-all"
+                          >
+                            <i className="fa-solid fa-image text-xs"></i>
+                          </a>
+                        )}
+                        <Link
+                          to={`/payments/invoice/${pay._id}`}
+                          className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all"
+                        >
+                          <i className="fa-solid fa-file-invoice text-xs"></i>
+                        </Link>
+                      </div>
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center text-gray-400 font-bold text-sm py-4">
+                  No client payments recorded yet.
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ৪. পোস্ট অ্যাক্টিভিটি মোডাল */}
+      {/* --- ALL MODALS --- */}
       <AnimatePresence>
         {isUpdateModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -351,7 +435,7 @@ const JobOverview = () => {
               exit={{ opacity: 0 }}
               onClick={() => setIsUpdateModalOpen(false)}
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            ></motion.div>
+            />
             <motion.div
               variants={modalVariants}
               initial="hidden"
@@ -382,72 +466,11 @@ const JobOverview = () => {
                     className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0F8FF0]/20 transition-all font-medium text-gray-700"
                   ></textarea>
                 </div>
-                <div>
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">
-                    REFERENCE LINK (OPTIONAL)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="https://..."
-                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0F8FF0]/20 transition-all font-medium text-gray-700"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block ml-1">
-                    DATE OF UPDATE
-                  </label>
-                  <input
-                    type="date"
-                    defaultValue="2026-03-31"
-                    className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#0F8FF0]/20 transition-all font-medium text-gray-700"
-                  />
-                </div>
-                <button className="w-full py-5 bg-[#111827] text-white font-black text-xs uppercase tracking-[0.3em] rounded-2xl hover:bg-black transition-all shadow-xl flex items-center justify-center gap-3">
-                  <i className="fa-solid fa-rocket"></i> POST ACTIVITY
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* ৫. ডিলিট কনফার্মেশন মোডাল */}
-      <AnimatePresence>
-        {isDeleteModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsDeleteModalOpen(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            ></motion.div>
-            <motion.div
-              variants={modalVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="bg-white rounded-[2.5rem] p-10 max-w-sm w-full relative z-10 text-center shadow-2xl"
-            >
-              <div className="w-24 h-24 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 border-8 border-white shadow-inner">
-                <i className="fa-solid fa-trash-can text-4xl"></i>
-              </div>
-              <h3 className="text-3xl font-black text-gray-900 mb-2 font-merriweather leading-tight">
-                Confirm?
-              </h3>
-              <p className="text-gray-500 text-sm font-bold mb-10 leading-relaxed">
-                Are you absolutely sure you want to delete this payment record?
-                This is permanent.
-              </p>
-              <div className="flex gap-4">
                 <button
-                  onClick={() => setIsDeleteModalOpen(false)}
-                  className="flex-1 py-4 bg-gray-100 text-gray-500 font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-gray-200"
+                  onClick={() => setIsUpdateModalOpen(false)}
+                  className="w-full py-5 bg-[#111827] text-white font-black text-xs uppercase tracking-[0.3em] rounded-2xl hover:bg-black transition-all shadow-xl flex items-center justify-center gap-3"
                 >
-                  CANCEL
-                </button>
-                <button className="flex-1 py-4 bg-red-600 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-red-700 shadow-xl shadow-red-200">
-                  YES, DELETE
+                  <i className="fa-solid fa-rocket"></i> POST ACTIVITY
                 </button>
               </div>
             </motion.div>

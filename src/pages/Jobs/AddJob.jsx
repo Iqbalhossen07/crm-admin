@@ -45,6 +45,8 @@ const AddJob = () => {
     });
 
     // প্রজেক্টের নাম এবং ডেভেলপার লিস্ট নিয়ে আসা
+    // ১. প্রজেক্টের নাম এবং ডেভেলপার লিস্ট নিয়ে আসা
+    // ১. প্রজেক্টের নাম এবং ডেভেলপার লিস্ট নিয়ে আসা
     const fetchInitialData = async () => {
       try {
         if (!getProjectId) {
@@ -53,14 +55,24 @@ const AddJob = () => {
           return;
         }
 
+        // 🎯 আপনার কন্ট্রোলার অনুযায়ী প্রজেক্ট ডাটা ফেচ করা
         const projRes = await api.get(`/admin/projects/${getProjectId}`);
-        setProjectName(projRes.data.data.project_name);
+
+        // কনসোলে চেক করে দেখুন ডাটা কিভাবে আসছে
+        console.log("Project Response:", projRes.data);
+
+        // যদি আপনার projectController-এর getSingleProject ফাংশন ব্যবহার করেন:
+        if (projRes.data.data.project_info) {
+          setProjectName(projRes.data.data.project_info.project_name);
+        } else {
+          // যদি সরাসরি প্রজেক্ট অবজেক্ট আসে:
+          setProjectName(projRes.data.data.project_name);
+        }
 
         const devRes = await api.get("/admin/developers");
         setDevelopers(devRes.data.data);
       } catch (err) {
         console.error("Failed to load initial data", err);
-        Swal.fire("Error", "Failed to load project details.", "error");
       } finally {
         setPageLoading(false);
       }

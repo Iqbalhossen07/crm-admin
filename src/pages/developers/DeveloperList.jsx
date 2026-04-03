@@ -169,30 +169,42 @@ const DeveloperList = () => {
                 </div>
 
                 {/* স্ট্যাটস গ্রিড (Earned, Paid, Pending) - আপাতত ০ */}
+                {/* স্ট্যাটস গ্রিড (Real-time Data) */}
                 <div className="grid grid-cols-2 gap-2 mb-2 text-center">
                   <div className="bg-gray-50/80 border border-gray-100 p-3 rounded-2xl">
                     <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-0.5">
-                      Tasks
+                      Jobs
                     </p>
-                    <p className="text-sm font-black text-gray-900">0</p>
+                    <p className="text-sm font-black text-gray-900">
+                      {dev.stats?.totalTasks || 0}
+                    </p>
                   </div>
+
                   <div className="bg-blue-50/50 border border-blue-50 p-3 rounded-2xl">
                     <p className="text-[9px] text-blue-500 font-black uppercase tracking-widest mb-0.5">
                       Earned
                     </p>
-                    <p className="text-sm font-black text-blue-700">£0</p>
+                    <p className="text-sm font-black text-blue-700">
+                      £{Number(dev.stats?.totalEarned || 0).toLocaleString()}
+                    </p>
                   </div>
+
                   <div className="bg-emerald-50/50 border border-emerald-50 p-3 rounded-2xl">
                     <p className="text-[9px] text-emerald-500 font-black uppercase tracking-widest mb-0.5">
                       Paid
                     </p>
-                    <p className="text-sm font-black text-emerald-700">£0</p>
+                    <p className="text-sm font-black text-emerald-700">
+                      £{Number(dev.stats?.totalPaid || 0).toLocaleString()}
+                    </p>
                   </div>
+
                   <div className="bg-rose-50/50 border border-rose-50 p-3 rounded-2xl">
                     <p className="text-[9px] text-rose-500 font-black uppercase tracking-widest mb-0.5">
                       Pending
                     </p>
-                    <p className="text-sm font-black text-rose-700">£0</p>
+                    <p className="text-sm font-black text-rose-700">
+                      £{Number(dev.stats?.totalDue || 0).toLocaleString()}
+                    </p>
                   </div>
                 </div>
               </div>
